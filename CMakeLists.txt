@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.1.3)
+project(dynamicsystems)
+add_executable(dynamicsystems main.cpp)
+if(UNIX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
+endif()
