@@ -2,14 +2,14 @@
 #include <random>
 #include <cmath>
 
-const double pi = std::acos(-1);
+constexpr double PI = std::acos(-1);
 
 double f(double alpha, double x, double y) {
-  return x + alpha*sin(2*pi*y);
+  return x + alpha*sin(2*PI*y);
 }
 
 double g(double beta, double x, double y) {
-  return y + beta*sin(2*pi*x);
+  return y + beta*sin(2*PI*x);
 }
 
 bool cond(double x, double y, double seedx, double seedy) {
@@ -20,35 +20,58 @@ int main(int argc, char** argv) {
   int n = 1000;  // number of iterations
   int m = 10; // number of seed points
   int alphamax = 1;
-  int betamax = 1;
+  //int betamax = 1;
   int steps = 1000;
   
   double stepsize = alphamax/steps;
 
-  std::vector<double> x(m*steps*steps);
-  std::vector<double> y(m*steps*steps);
+  const int sample_size = m * steps * steps;
+  std::vector<double> x(sample_size);
+  std::vector<double> y(sample_size);
+
+  double * x_ = x.data();
+  double * y_ = y.data();
+
 
   // Generating vector of random numbers
   std::mt19937 gen(std::random_device{}());
   std::uniform_real_distribution<> dis(0, 1);
-  std::vector<double> randv = {};
+  std::vector<double> randv;
   for(int i=0; i < m; ++i) {
     double randn = dis(gen);
     randv.push_back(randn);
   }
 
-  // Iterating over all pixel in the grid
-  // Adressing: (i * stepsize) + j + randv(k)
-  for (int i=0; i < steps; ++i) {
-    for (int j=0; j < steps; ++j) {
-      for (int k=0; k < m; ++k) {
+  //std::unique_ptr<double[]> tmp{new double[sample_size]};
 
-      }
-    }
+  for (int i = 0; i < sample_size; ++i) {
+    const double beta = (i % m) * stepsize;
+    //const double alpha = (i % (m * steps)) * stepsize;
+    y_[i] = y_[i] + beta * std::sin(2 * PI * x_[i]);
   }
 
+  for (int i = 0; i < sample_size; ++i) {
+    //const double beta = (i % m) * stepsize;
+    const double alpha = (i % (m * steps)) * stepsize;
+    x_[i] = x_[i] + alpha * std::sin(2 * PI * y_[i]);
+  }
+
+  // Filling the vectors with inital random values
 
 
+  // Iterating over all pixel in the grid
+  // Adressing: (i * stepsize), (j * stepsize)
+  // double alpha;
+  // double beta;
+  // for (int i=0; i < steps; ++i) {
+  //   alpha = i * stepsize
+  //   for (int j=0; j < steps; ++j) {
+  //     beta = j * stepsize
+  //     for (int k=0; k < m; ++k) {
+  //       x[i + j + m]
+  //     }
+  //   }
+  // }
 
   return 0;
 }
