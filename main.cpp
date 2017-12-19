@@ -1,8 +1,9 @@
 #include <vector>
 #include <random>
 #include <cmath>
+#include <iostream>
 
-constexpr double PI = std::acos(-1);
+static const double PI = std::acos(-1);
 
 double f(double alpha, double x, double y) {
   return x + alpha*sin(2*PI*y);
@@ -17,11 +18,11 @@ bool cond(double x, double y, double seedx, double seedy) {
 }
 
 int main(int argc, char** argv) {
-  int n = 1000;  // number of iterations
-  int m = 10; // number of seed points
+  int n = 10;  // number of iterations
+  int m = 100; // number of seed points
   int alphamax = 1;
   //int betamax = 1;
-  int steps = 1000;
+  int steps = 2000;
   
   double stepsize = alphamax/steps;
 
@@ -44,17 +45,23 @@ int main(int argc, char** argv) {
 
   //std::unique_ptr<double[]> tmp{new double[sample_size]};
 
-  for (int i = 0; i < sample_size; ++i) {
-    const double beta = (i % m) * stepsize;
-    //const double alpha = (i % (m * steps)) * stepsize;
-    y_[i] = y_[i] + beta * std::sin(2 * PI * x_[i]);
-  }
 
-  for (int i = 0; i < sample_size; ++i) {
-    //const double beta = (i % m) * stepsize;
-    const double alpha = (i % (m * steps)) * stepsize;
-    x_[i] = x_[i] + alpha * std::sin(2 * PI * y_[i]);
-  }
+    //std::vector<double> beta_vec(sample_size);
+    //for (int i = 0; i < sample_size; ++i) beta_vec[i] = (i % m) * stepsize; 
+    const double TWO_PI = 2 * PI;
+    for (int i = 0; i < sample_size; ++i) {
+      const double beta = (i % m) * stepsize;
+      const double alpha = (i % m) * stepsize;
+      //const double alpha = (i % (m * steps)) * stepsize;
+      y_[i] = y_[i] + beta * std::sin(TWO_PI * x_[i]);
+      x_[i] = x_[i] + alpha * std::sin(TWO_PI * y_[i]);
+    }
+  
+    //for (int i = 0; i < sample_size; ++i) {
+      
+      //const double alpha = (i % (m * steps)) * stepsize;
+     // x_[i] = x_[i] + alpha * std::sin(TWO_PI * y_[i]);
+    //}
 
   // Filling the vectors with inital random values
 
