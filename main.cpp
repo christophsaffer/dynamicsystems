@@ -95,8 +95,13 @@ int main(int argc, char* argv[]) {
 
   // Output pixel vector
   for (int i = 0; i < intervals*intervals; ++i){
-    std::cout << i << ": --- " << pixel[i] <<std::endl;
+    if ( (i%intervals) == 0) {
+      std::cout <<std::endl;
+    }
+    std::cout << pixel[i];
   }
+  std::cout <<std::endl;
+
 
   return 0;
 }
