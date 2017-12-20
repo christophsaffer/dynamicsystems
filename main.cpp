@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
   double intervalsize = alphabetamax/intervals;
   std::cout << "intervallsize: " << intervalsize <<std::endl;
 
-  // Generate pixel vectors
+  // Generate vectors x, y
   const int sample_size = seedpoints * intervals * intervals;
   std::vector<double> x(sample_size);
   std::vector<double> y(sample_size);
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     randv.push_back(randn);
   }
 
-  // Fill pixel vectors with seedpoints
+  // Fill vectors x, y with seedpoints
   int j; 
   for (int i = 0; i < sample_size; ++i) {
     j = i % seedpoints;
@@ -63,6 +63,12 @@ int main(int argc, char* argv[]) {
     x_[i] = randv[j];
   }
 
+  // Save seedpoints
+  std::vector<double> x_start = x;
+  std::vector<double> y_start = y;
+
+  // Generate pixel vector
+  std::vector<int> pixel(intervals * intervals, 1);
 
   const double TWO_PI = 2 * PI;
   for (int j = 0; j < iterations; ++j) {
@@ -75,12 +81,22 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  // Map calculated vectors x and y to pixel vector
   for (int i = 0; i < sample_size; ++i) {
-    std::cout << i << " - y: " << y_[i] << ", x: " << x_[i] <<std::endl;
+    y_start[i] = y_[i] - y_start[i];
+    x_start[i] = x_[i] - x_start[i];
+
+    if (y_start[i] > 1 || x_start[i] > 1) {
+      pixel[int(i / seedpoints)] = 0;
+    }
+
+    //std::cout << i << "::: --- y: " << y_start[i] << ", x: " << x_start[i] <<std::endl;
   }
 
-
-
+  // Output pixel vector
+  for (int i = 0; i < intervals*intervals; ++i){
+    std::cout << i << ": --- " << pixel[i] <<std::endl;
+  }
 
   return 0;
 }
