@@ -5,80 +5,82 @@
 
 static const double PI = std::acos(-1);
 
-double f(double alpha, double x, double y) {
-  return x + alpha*sin(2*PI*y);
-}
+int main(int argc, char* argv[]) {
 
-double g(double beta, double x, double y) {
-  return y + beta*sin(2*PI*x);
-}
+  // Default parameters
+  int iterations = 100;
+  int seedpoints = 10;
+  int intervals = 100;
 
-bool cond(double x, double y, double seedx, double seedy) {
-  return true;
-}
+  // Get parameters from command line
+  if (argc == 1) {
+    std::cout << "Warning: Not all parameters were given. Using parameters " 
+    << iterations << ", " << seedpoints << ", " << intervals << " .." <<std::endl;
+  }
+  else if (argc == 2) {
+    iterations = atoi(argv[1]);
+    std::cout << "Warning: Not all parameters were given. Using parameters " 
+    << iterations << ", " << seedpoints << ", " << intervals << " .." <<std::endl;
+  }
+  else if (argc == 3) {
+    iterations = atoi(argv[1]);
+    seedpoints = atoi(argv[2]);
+    std::cout << "Warning: Not all parameters were given. Using parameters " 
+    << iterations << ", " << seedpoints << ", " << intervals << " .." <<std::endl;
+  }
+  else {
+    iterations = atoi(argv[1]);
+    seedpoints = atoi(argv[2]);
+    intervals = atoi(argv[3]);
+  }
 
-int main(int argc, char** argv) {
-  int n = 10;  // number of iterations
-  int m = 100; // number of seed points
-  int alphamax = 1;
-  //int betamax = 1;
-  int steps = 2000;
-  
-  double stepsize = alphamax/steps;
+  double alphabetamax = 1;
+  double intervalsize = alphabetamax/intervals;
+  std::cout << "intervallsize: " << intervalsize <<std::endl;
 
-  const int sample_size = m * steps * steps;
+  // Generate pixel vectors
+  const int sample_size = seedpoints * intervals * intervals;
   std::vector<double> x(sample_size);
   std::vector<double> y(sample_size);
-
   double * x_ = x.data();
   double * y_ = y.data();
 
 
-  // Generating vector of random numbers
+  // Generate seedpoints
   std::mt19937 gen(std::random_device{}());
   std::uniform_real_distribution<> dis(0, 1);
   std::vector<double> randv;
-  for(int i=0; i < m; ++i) {
+  for(int i=0; i < seedpoints; ++i) {
     double randn = dis(gen);
     randv.push_back(randn);
   }
 
-  //std::unique_ptr<double[]> tmp{new double[sample_size]};
+  // Fill pixel vectors with seedpoints
+  int j; 
+  for (int i = 0; i < sample_size; ++i) {
+    j = i % seedpoints;
+    y_[i] = randv[j];
+    x_[i] = randv[j];
+  }
 
 
-    //std::vector<double> beta_vec(sample_size);
-    //for (int i = 0; i < sample_size; ++i) beta_vec[i] = (i % m) * stepsize; 
-    const double TWO_PI = 2 * PI;
+  const double TWO_PI = 2 * PI;
+  for (int j = 0; j < iterations; ++j) {
     for (int i = 0; i < sample_size; ++i) {
-      const double beta = (i % m) * stepsize;
-      const double alpha = (i % m) * stepsize;
-      //const double alpha = (i % (m * steps)) * stepsize;
+      double beta = ((i / seedpoints) % intervals) * intervalsize;
+      double alpha = int((i / seedpoints) / intervals) * intervalsize;
+      // std::cout << i << ": beta: " << beta << " -- alpha: " << alpha <<std::endl;
       y_[i] = y_[i] + beta * std::sin(TWO_PI * x_[i]);
       x_[i] = x_[i] + alpha * std::sin(TWO_PI * y_[i]);
     }
-  
-    //for (int i = 0; i < sample_size; ++i) {
-      
-      //const double alpha = (i % (m * steps)) * stepsize;
-     // x_[i] = x_[i] + alpha * std::sin(TWO_PI * y_[i]);
-    //}
+  }
 
-  // Filling the vectors with inital random values
+  for (int i = 0; i < sample_size; ++i) {
+    std::cout << i << " - y: " << y_[i] << ", x: " << x_[i] <<std::endl;
+  }
 
 
-  // Iterating over all pixel in the grid
-  // Adressing: (i * stepsize), (j * stepsize)
-  // double alpha;
-  // double beta;
-  // for (int i=0; i < steps; ++i) {
-  //   alpha = i * stepsize
-  //   for (int j=0; j < steps; ++j) {
-  //     beta = j * stepsize
-  //     for (int k=0; k < m; ++k) {
-  //       x[i + j + m]
-  //     }
-  //   }
-  // }
+
 
   return 0;
 }
