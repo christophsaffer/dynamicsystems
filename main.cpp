@@ -2,6 +2,7 @@
 #include <random>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 
 static const double PI = std::acos(-1);
 
@@ -87,21 +88,25 @@ int main(int argc, char* argv[]) {
     x_start[i] = x_[i] - x_start[i];
 
     if (y_start[i] > 1 || x_start[i] > 1) {
-      pixel[int(i / seedpoints)] = 0;
+      pixel[int(i / seedpoints)] = 255;
     }
 
     //std::cout << i << "::: --- y: " << y_start[i] << ", x: " << x_start[i] <<std::endl;
   }
 
-  // Output pixel vector
+  // Output pixel vector into PGM File
+  std::string filename = "picture.pgm";
+  std::ofstream ostrm(filename);
+  ostrm << "P2" << '\n';
+  ostrm << intervals << ' ' << intervals << '\n';
+  ostrm << 255 << '\n'; // max. gray value
   for (int i = 0; i < intervals*intervals; ++i){
     if ( (i%intervals) == 0) {
-      std::cout <<std::endl;
+      ostrm << '\n';
     }
-    std::cout << pixel[i];
+    ostrm << pixel[i] << ' ';
   }
-  std::cout <<std::endl;
-
+  ostrm <<std::endl;
 
   return 0;
 }
