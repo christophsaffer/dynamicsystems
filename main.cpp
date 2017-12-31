@@ -3,108 +3,71 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 static const double PI = std::acos(-1);
+static const double TWO_PI = 2 * PI;
+
+// return gray-value of pixel[alpha,beta], between 0..255
+int pixel(double alpha, double beta, std::vector<double> seed_x, std::vector<double> seed_y, int num_iterations) {
+  int num_seeds = seed_x.size();
+  assert(seed_y.size() == num_seeds);
+  
+  std::vector<double> x = seed_x;
+  std::vector<double> y = seed_y;
+
+  for (int s=0;s<num_seeds;s++) {
+    for (int i=0;i<num_iterations;i++) {
+      y[s] = y[s] + beta * std::sin(TWO_PI * x[s]);
+      x[s] = x[s] + alpha * std::sin(TWO_PI * y[s]);
+    }
+  }
+
+  double d = 0.0;
+  for (int s=0;s<num_seeds;s++) {
+    d = std::max(d,std::max( std::abs(seed_x[s]-x[s]), std::abs(seed_y[s]-y[s]) ));    
+    //d = std::max(d,std::max( (seed_x[s]-x[s]), (seed_y[s]-y[s]) ));    
+  }
+  
+  if (d>1) { 
+    return 255;
+  } else {
+    return (int) 254*d;
+  }
+}
 
 int main(int argc, char* argv[]) {
 
   // Default parameters
-  int iterations = 100;
-  int seedpoints = 10;
-  int intervals = 100;
+  int num_iterations = 10;
+  int num_intervals = 400;
+  int num_params = num_intervals + 1;
 
-  // Get parameters from command line
-  if (argc == 1) {
-    std::cout << "Warning: Not all parameters were given. Using parameters " 
-    << iterations << ", " << seedpoints << ", " << intervals << " .." <<std::endl;
-  }
-  else if (argc == 2) {
-    iterations = atoi(argv[1]);
-    std::cout << "Warning: Not all parameters were given. Using parameters " 
-    << iterations << ", " << seedpoints << ", " << intervals << " .." <<std::endl;
-  }
-  else if (argc == 3) {
-    iterations = atoi(argv[1]);
-    seedpoints = atoi(argv[2]);
-    std::cout << "Warning: Not all parameters were given. Using parameters " 
-    << iterations << ", " << seedpoints << ", " << intervals << " .." <<std::endl;
-  }
-  else {
-    iterations = atoi(argv[1]);
-    seedpoints = atoi(argv[2]);
-    intervals = atoi(argv[3]);
-  }
-
+  double alphabetamin = -1;
   double alphabetamax = 1;
-  double intervalsize = alphabetamax/intervals;
+  double intervalsize = (alphabetamax-alphabetamin)/(num_intervals);
   std::cout << "intervallsize: " << intervalsize <<std::endl;
 
-  // Generate vectors x, y
-  const int sample_size = seedpoints * intervals * intervals;
-  std::vector<double> x(sample_size);
-  std::vector<double> y(sample_size);
-  double * x_ = x.data();
-  double * y_ = y.data();
-
-
-  // Generate seedpoints
-  std::mt19937 gen(std::random_device{}());
-  std::uniform_real_distribution<> dis(0, 1);
-  std::vector<double> randv;
-  for(int i=0; i < seedpoints; ++i) {
-    double randn = dis(gen);
-    randv.push_back(randn);
+  // fill Parametervectors:
+  std::vector<double> params(num_params);
+  for (int i=0;i<num_params;i++) {
+    params[i] = alphabetamin + i*intervalsize;
   }
 
-  // Fill vectors x, y with seedpoints
-  int j; 
-  for (int i = 0; i < sample_size; ++i) {
-    j = i % seedpoints;
-    y_[i] = randv[j];
-    x_[i] = randv[j];
-  }
-
-  // Save seedpoints
-  std::vector<double> x_start = x;
-  std::vector<double> y_start = y;
-
-  // Generate pixel vector
-  std::vector<int> pixel(intervals * intervals, 1);
-
-  const double TWO_PI = 2 * PI;
-  for (int j = 0; j < iterations; ++j) {
-    for (int i = 0; i < sample_size; ++i) {
-      double beta = ((i / seedpoints) % intervals) * intervalsize;
-      double alpha = int((i / seedpoints) / intervals) * intervalsize;
-      // std::cout << i << ": beta: " << beta << " -- alpha: " << alpha <<std::endl;
-      y_[i] = y_[i] + beta * std::sin(TWO_PI * x_[i]);
-      x_[i] = x_[i] + alpha * std::sin(TWO_PI * y_[i]);
-    }
-  }
-
-  // Map calculated vectors x and y to pixel vector
-  for (int i = 0; i < sample_size; ++i) {
-    y_start[i] = y_[i] - y_start[i];
-    x_start[i] = x_[i] - x_start[i];
-
-    if (y_start[i] > 1 || x_start[i] > 1) {
-      pixel[int(i / seedpoints)] = 255;
-    }
-
-    //std::cout << i << "::: --- y: " << y_start[i] << ", x: " << x_start[i] <<std::endl;
-  }
+  std::vector<double> x_start = {-1,-0.5,-0.1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.5,2};
+  std::vector<double> y_start = {-1,-0.5,-0.1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.5,2};
 
   // Output pixel vector into PGM File
   std::string filename = "picture.pgm";
   std::ofstream ostrm(filename);
   ostrm << "P2" << '\n';
-  ostrm << intervals << ' ' << intervals << '\n';
+  ostrm << num_params << ' ' << num_params << '\n';
   ostrm << 255 << '\n'; // max. gray value
-  for (int i = 0; i < intervals*intervals; ++i){
-    if ( (i%intervals) == 0) {
-      ostrm << '\n';
+  for (int j=num_params-1;j>=0;j--) {
+    for (int i=0;i<num_params;i++) {
+     ostrm << pixel( params[i],params[j], x_start, y_start, num_iterations) << ' '; 
     }
-    ostrm << pixel[i] << ' ';
+    ostrm << '\n';
   }
   ostrm <<std::endl;
 
