@@ -25,7 +25,7 @@ int pixel(double alpha, double beta, std::vector<double> seed_x, std::vector<dou
 
   double d = 0.0;
   for (int s=0;s<num_seeds;s++) {
-    d = std::max(d,std::max( std::abs(seed_x[s]-x[s]), std::abs(seed_y[s]-y[s]) ));    
+    d = std::max(d,std::abs(seed_y[s]-y[s]));
     //d = std::max(d,std::max( (seed_x[s]-x[s]), (seed_y[s]-y[s]) ));    
   }
   
@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
     params[i] = alphabetamin + i*intervalsize;
   }
 
-  std::vector<double> x_start = {-1,-0.5,-0.1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.5,2};
-  std::vector<double> y_start = {-1,-0.5,-0.1,0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.5,2};
+  std::vector<double> x_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
+  std::vector<double> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
 
   // Output pixel vector into PGM File
   std::string filename = "picture.pgm";
