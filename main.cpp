@@ -39,12 +39,12 @@ int pixel(double alpha, double beta, std::vector<double> seed_x, std::vector<dou
 int main(int argc, char* argv[]) {
 
   // Default parameters
-  int num_iterations = 10;
-  int num_intervals = 400;
+  int num_iterations = 100;
+  int num_intervals = 500;
   int num_params = num_intervals + 1;
 
-  double alphabetamin = -1;
-  double alphabetamax = 1;
+  double alphabetamin = 0;
+  double alphabetamax = 2;
   double intervalsize = (alphabetamax-alphabetamin)/(num_intervals);
   std::cout << "intervallsize: " << intervalsize <<std::endl;
 
@@ -55,7 +55,8 @@ int main(int argc, char* argv[]) {
   }
 
   std::vector<double> x_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
-  std::vector<double> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
+  //std::vector<double> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
+  std::vector<double> y_start = {0,0,0,0,0,0,0,0,0};
 
   // Output pixel vector into PGM File
   std::string filename = "picture.pgm";
