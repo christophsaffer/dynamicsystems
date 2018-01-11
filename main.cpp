@@ -22,6 +22,8 @@ int pixel(double alpha, double beta, std::vector<double> seed_x, std::vector<dou
   for (int i=0;i<num_iterations && d<1;i++) {
     for (int s=0;s<num_seeds;s++) {
       y[s] = y[s] + beta * std::sin(TWO_PI * x[s]);
+    }
+    for (int s=0; s<num_seeds;s++){
       x[s] = x[s] + alpha * std::sin(TWO_PI * y[s]);
     }
 
@@ -41,7 +43,7 @@ int main(int argc, char* argv[]) {
 
   // Default parameters
   int num_iterations = 100;
-  int num_intervals = 1000;
+  int num_intervals = 2000;
   int num_params = num_intervals + 1;
 
   double alphabetamin = 0;
