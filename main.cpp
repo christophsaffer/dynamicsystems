@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
   // Default parameters
   int num_iterations = 100;
-  int num_intervals = 500;
+  int num_intervals = 1000;
   int num_params = num_intervals + 1;
 
   double alphabetamin = 0;
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 #pragma omp parallel for
   for (int j=num_params-1;j>=0;j--) {
     for (int i=0;i<num_params;i++) {
-     buffer[j*num_params+i] = pixel( params[i],params[j], x_start, y_start, num_iterations); 
+     buffer[(num_params-j-1)*num_params+i] = pixel( params[i],params[j], x_start, y_start, num_iterations); 
     }
   }
 
