@@ -1,4 +1,5 @@
 #include <vector>
+#include <algorithm>
 #include <random>
 #include <cmath>
 #include <iostream>
@@ -15,18 +16,18 @@ int pixel(double alpha, double beta, std::vector<double> seed_x, std::vector<dou
   
   std::vector<double> x = seed_x;
   std::vector<double> y = seed_y;
+  
+  double d = 0.0;
 
-  for (int s=0;s<num_seeds;s++) {
-    for (int i=0;i<num_iterations;i++) {
+  for (int i=0;i<num_iterations && d<1;i++) {
+    for (int s=0;s<num_seeds;s++) {
       y[s] = y[s] + beta * std::sin(TWO_PI * x[s]);
       x[s] = x[s] + alpha * std::sin(TWO_PI * y[s]);
     }
-  }
 
-  double d = 0.0;
-  for (int s=0;s<num_seeds;s++) {
-    d = std::max(d,std::abs(seed_y[s]-y[s]));
-    //d = std::max(d,std::max( (seed_x[s]-x[s]), (seed_y[s]-y[s]) ));    
+    for (int s=0;s<num_seeds;s++) {
+      d = std::max(d,std::abs(y[s]));
+    }
   }
   
   if (d>1) { 
@@ -64,13 +65,20 @@ int main(int argc, char* argv[]) {
   ostrm << "P2" << '\n';
   ostrm << num_params << ' ' << num_params << '\n';
   ostrm << 255 << '\n'; // max. gray value
+  std::vector<int> buffer(num_params*num_params);
+  
+#pragma omp parallel for
   for (int j=num_params-1;j>=0;j--) {
     for (int i=0;i<num_params;i++) {
-     ostrm << pixel( params[i],params[j], x_start, y_start, num_iterations) << ' '; 
+     buffer[j*num_params+i] = pixel( params[i],params[j], x_start, y_start, num_iterations); 
     }
-    ostrm << '\n';
   }
-  ostrm <<std::endl;
 
+  for(int i=0;i<buffer.size();++i) {
+    ostrm << buffer[i] << ' ';
+    if(i%num_params==0) {
+      ostrm << '\n';
+    }
+  }
   return 0;
 }
