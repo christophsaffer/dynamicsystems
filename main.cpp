@@ -43,18 +43,27 @@ int main(int argc, char* argv[]) {
 
   // Default parameters
   int num_iterations = 100;
-  int num_intervals = 2000;
-  int num_params = num_intervals + 1;
 
-  double alphabetamin = 0;
-  double alphabetamax = 2;
-  double intervalsize = (alphabetamax-alphabetamin)/(num_intervals);
-  std::cout << "intervallsize: " << intervalsize <<std::endl;
+  double alphamin = 0;
+  double alphamax = 2;
+  int alpha_num_intervals = 600;
+  int alpha_num_params = alpha_num_intervals + 1;
+  double alpha_interval_size = (alphamax-alphamin)/(alpha_num_intervals);
+
+  double betamin = 0;
+  double betamax = 0.5;
+  int beta_num_intervals = 200;
+  int beta_num_params = beta_num_intervals + 1;
+  double beta_interval_size = (betamax-betamin)/(beta_num_intervals);
 
   // fill Parametervectors:
-  std::vector<double> params(num_params);
-  for (int i=0;i<num_params;i++) {
-    params[i] = alphabetamin + i*intervalsize;
+  std::vector<double> alphas(alpha_num_params);
+  for (int i=0;i<alpha_num_params;i++) {
+    alphas[i] = alphamin + i*alpha_interval_size;
+  }
+  std::vector<double> betas(beta_num_params);
+  for (int i=0;i<beta_num_params;i++) {
+    betas[i] = betamin + i*beta_interval_size;
   }
 
   std::vector<double> x_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
@@ -65,20 +74,20 @@ int main(int argc, char* argv[]) {
   std::string filename = "picture.pgm";
   std::ofstream ostrm(filename);
   ostrm << "P2" << '\n';
-  ostrm << num_params << ' ' << num_params << '\n';
+  ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
   ostrm << 255 << '\n'; // max. gray value
-  std::vector<int> buffer(num_params*num_params);
+  std::vector<int> buffer(alpha_num_params*beta_num_params);
   
 #pragma omp parallel for
-  for (int j=num_params-1;j>=0;j--) {
-    for (int i=0;i<num_params;i++) {
-     buffer[(num_params-j-1)*num_params+i] = pixel( params[i],params[j], x_start, y_start, num_iterations); 
+  for (int b=beta_num_params-1;b>=0;b--) {
+    for (int a=0;a<alpha_num_params;a++) {
+     buffer[(beta_num_params-b-1)*alpha_num_params+a] = pixel( alphas[a],betas[b], x_start, y_start, num_iterations); 
     }
   }
 
   for(int i=0;i<buffer.size();++i) {
     ostrm << buffer[i] << ' ';
-    if(i%num_params==0) {
+    if(i%alpha_num_params==0) {
       ostrm << '\n';
     }
   }
