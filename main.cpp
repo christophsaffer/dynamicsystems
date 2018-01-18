@@ -12,21 +12,21 @@ static const double PI = std::acos(-1);
 static const double TWO_PI = 2 * PI;
 
 // return gray-value of pixel[alpha,beta], between 0..255
-int pixel(double alpha, double beta, int seed_size, double * seed_x, double * seed_y, int num_iterations) {
-  int num_seeds = seed_size;
-  //assert(seed_y.size() == num_seeds);
+int pixel(double alpha, double beta, std::vector<double> seed_x, std::vector<double> seed_y, int num_iterations) {
+  int num_seeds = seed_x.size();
+  assert(seed_y.size() == num_seeds);
   
-  double * x = seed_x;
-  double * y = seed_y;
+  std::vector<double> x = seed_x;
+  std::vector<double> y = seed_y;
   
   double d = 0.0;
 
   for (int i=0;i<num_iterations && d<1;i++) {
     for (int s=0;s<num_seeds;s++) {
-      y[s] += beta * std::sin(TWO_PI * x[s]);
+      y[s] = y[s] + beta * std::sin(TWO_PI * x[s]);
     }
     for (int s=0; s<num_seeds;s++){
-      x[s] += alpha * std::sin(TWO_PI * y[s]);
+      x[s] = x[s] + alpha * std::sin(TWO_PI * y[s]);
     }
 
     for (int s=0;s<num_seeds;s++) {
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 #pragma omp parallel for
   for (int b=beta_num_params-1;b>=0;b--) {
     for (int a=0;a<alpha_num_params;a++) {
-     buffer[(beta_num_params-b-1)*alpha_num_params+a] = pixel( alphas[a],betas[b],9, x_start.data(), y_start.data(), num_iterations); 
+     buffer[(beta_num_params-b-1)*alpha_num_params+a] = pixel( alphas[a],betas[b], x_start, y_start, num_iterations); 
     }
   }
   auto time_end = std::chrono::system_clock::now();
