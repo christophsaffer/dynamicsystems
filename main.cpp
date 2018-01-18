@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
   auto time_start = std::chrono::system_clock::now();
 
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
   for (int a = 0; a < alpha_num_params; a++) {
     for (int b = beta_num_params - 1; b >= 0; b--) {
       buffer[(beta_num_params - b - 1) * alpha_num_params + a] =
