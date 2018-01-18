@@ -11,7 +11,10 @@ if(OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS})
 endif()
 
+find_package(Boost REQUIRED)
+target_include_directories(dynamicsystems PRIVATE ${Boost_INCLUDE_DIR})
+
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  target_compile_options(dynamicsystems PRIVATE "-std=c++11" "-qopt-report=5" "-qopt-report-phase=vec")
+  target_compile_options(dynamicsystems PRIVATE "-std=c++11" "-qopt-report=5" "-qopt-report-phase=vec" "-xhost")
 endif()

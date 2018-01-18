@@ -7,30 +7,44 @@
 #include <fstream>
 #include <cassert>
 #include <chrono>
+#include <vector>
 
-static const double PI = std::acos(-1);
-static const double TWO_PI = 2 * PI;
+#include <boost/align/aligned_allocator.hpp>
+
+template<typename T>
+using aligned_allocator = boost::alignment::aligned_allocator<T, 64>;
+template <typename T>
+using aligned_vector = std::vector<T, aligned_allocator<T>>;
+
+
+constexpr float PI = 3.141592635;
+constexpr float TWO_PI = 6.28318530718;// 2 * PI;
 
 // return gray-value of pixel[alpha,beta], between 0..255
-int pixel(double alpha, double beta, std::vector<double> seed_x, std::vector<double> seed_y, int num_iterations) {
+int pixel(float alpha, float beta, aligned_vector<float> seed_x, aligned_vector<float> seed_y, int num_iterations) {
   int num_seeds = seed_x.size();
   assert(seed_y.size() == num_seeds);
   
-  std::vector<double> x = seed_x;
-  std::vector<double> y = seed_y;
+  aligned_vector<float> x = seed_x;
+  aligned_vector<float> y = seed_y;
+
+  float * xp = x.data();
+  float * yp = y.data();
   
-  double d = 0.0;
+  float d = 0.0;
 
   for (int i=0;i<num_iterations && d<1;i++) {
+    #pragma omp simd aligned(xp,yp:64)
     for (int s=0;s<num_seeds;s++) {
-      y[s] = y[s] + beta * std::sin(TWO_PI * x[s]);
+      yp[s] = yp[s] + beta * std::sin(TWO_PI * xp[s]);
     }
+    #pragma omp simd aligned(xp,yp:64)
     for (int s=0; s<num_seeds;s++){
-      x[s] = x[s] + alpha * std::sin(TWO_PI * y[s]);
+      xp[s] = xp[s] + alpha * std::sin(TWO_PI * yp[s]);
     }
 
     for (int s=0;s<num_seeds;s++) {
-      d = std::max(d,std::abs(y[s]));
+      d = std::max(d,std::abs(yp[s]));
     }
   }
   
@@ -55,40 +69,44 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  double alphamin = 0;
-  double alphamax = 2;
+  float alphamin = 0;
+  float alphamax = 2;
   int alpha_num_intervals = 600;
   if (!(std::istringstream(argv[2]) >> alpha_num_intervals) || !(alpha_num_intervals > 0) ) {
     std::cerr << "Number of alpha-intervals must be positive Integer!" << std::endl;
     return -1;
   }
   int alpha_num_params = alpha_num_intervals + 1;
-  double alpha_interval_size = (alphamax-alphamin)/(alpha_num_intervals);
+  float alpha_interval_size = (alphamax-alphamin)/(alpha_num_intervals);
 
-  double betamin = 0;
-  double betamax = 0.5;
+  float betamin = 0;
+  float betamax = 0.5;
   int beta_num_intervals = 200;
   if (!(std::istringstream(argv[3]) >> beta_num_intervals) || !(beta_num_intervals > 0) ) {
     std::cerr << "Number of beta-intervals must be positive Integer!" << std::endl;
     return -1;
   }
   int beta_num_params = beta_num_intervals + 1;
-  double beta_interval_size = (betamax-betamin)/(beta_num_intervals);
+  float beta_interval_size = (betamax-betamin)/(beta_num_intervals);
 
 
   // fill Parametervectors:
-  std::vector<double> alphas(alpha_num_params);
+  aligned_vector<float> alphas(alpha_num_params);
+  float * alphasp = alphas.data();
+  #pragma omp simd aligned(alphasp:64)
   for (int i=0;i<alpha_num_params;i++) {
-    alphas[i] = alphamin + i*alpha_interval_size;
+    alphasp[i] = alphamin + i*alpha_interval_size;
   }
-  std::vector<double> betas(beta_num_params);
+  aligned_vector<float> betas(beta_num_params);
+  float * betasp = betas.data();
+  #pragma omp simd aligned(betasp:64)
   for (int i=0;i<beta_num_params;i++) {
-    betas[i] = betamin + i*beta_interval_size;
+    betasp[i] = betamin + i*beta_interval_size;
   }
 
-  std::vector<double> x_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
-  //std::vector<double> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
-  std::vector<double> y_start = {0,0,0,0,0,0,0,0,0};
+  aligned_vector<float> x_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
+  //aligned_vector<float> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
+  aligned_vector<float> y_start = {0,0,0,0,0,0,0,0,0};
 
   // Output pixel vector into PGM File
   std::string filename = "picture.pgm";
@@ -96,7 +114,7 @@ int main(int argc, char* argv[]) {
   ostrm << "P2" << '\n';
   ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
   ostrm << 255 << '\n'; // max. gray value
-  std::vector<int> buffer(alpha_num_params*beta_num_params);
+  aligned_vector<int> buffer(alpha_num_params*beta_num_params);
   
   auto time_start = std::chrono::system_clock::now();
 
@@ -107,7 +125,7 @@ int main(int argc, char* argv[]) {
     }
   }
   auto time_end = std::chrono::system_clock::now();
-  double const elapsed_seconds = std::chrono::duration<double>(time_end - time_start).count();
+  float const elapsed_seconds = std::chrono::duration<float>(time_end - time_start).count();
   std::cout << "TIME: " << elapsed_seconds << std::endl;
 
   for(int i=0;i<buffer.size();++i) {
