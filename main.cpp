@@ -3,6 +3,7 @@
 #include <random>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <cassert>
 
@@ -41,20 +42,38 @@ int pixel(double alpha, double beta, std::vector<double> seed_x, std::vector<dou
 
 int main(int argc, char* argv[]) {
 
+  // get arguments from CLI
+  if ( argc != 4) {
+    std::cerr << "usage: " << argv[0] << " <num_iterations> <num_alpha_intervals> <num_beta_intervals>" << std::endl;
+    return -1;
+  }
   // Default parameters
   int num_iterations = 100;
+  if (!(std::istringstream(argv[1]) >> num_iterations) || !(num_iterations > 0) ) {
+    std::cerr << "Number of Iterations must be positive Integer!" << std::endl;
+    return -1;
+  }
 
   double alphamin = 0;
   double alphamax = 2;
   int alpha_num_intervals = 600;
+  if (!(std::istringstream(argv[2]) >> alpha_num_intervals) || !(alpha_num_intervals > 0) ) {
+    std::cerr << "Number of alpha-intervals must be positive Integer!" << std::endl;
+    return -1;
+  }
   int alpha_num_params = alpha_num_intervals + 1;
   double alpha_interval_size = (alphamax-alphamin)/(alpha_num_intervals);
 
   double betamin = 0;
   double betamax = 0.5;
   int beta_num_intervals = 200;
+  if (!(std::istringstream(argv[3]) >> beta_num_intervals) || !(beta_num_intervals > 0) ) {
+    std::cerr << "Number of beta-intervals must be positive Integer!" << std::endl;
+    return -1;
+  }
   int beta_num_params = beta_num_intervals + 1;
   double beta_interval_size = (betamax-betamin)/(beta_num_intervals);
+
 
   // fill Parametervectors:
   std::vector<double> alphas(alpha_num_params);
