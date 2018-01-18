@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <cassert>
+#include <chrono>
 
 static const double PI = std::acos(-1);
 static const double TWO_PI = 2 * PI;
@@ -97,12 +98,17 @@ int main(int argc, char* argv[]) {
   ostrm << 255 << '\n'; // max. gray value
   std::vector<int> buffer(alpha_num_params*beta_num_params);
   
+  auto time_start = std::chrono::system_clock::now();
+
 #pragma omp parallel for
   for (int b=beta_num_params-1;b>=0;b--) {
     for (int a=0;a<alpha_num_params;a++) {
      buffer[(beta_num_params-b-1)*alpha_num_params+a] = pixel( alphas[a],betas[b], x_start, y_start, num_iterations); 
     }
   }
+  auto time_end = std::chrono::system_clock::now();
+  double const elapsed_seconds = std::chrono::duration<double>(time_end - time_start).count();
+  std::cout << "TIME: " << elapsed_seconds << std::endl;
 
   for(int i=0;i<buffer.size();++i) {
     ostrm << buffer[i] << ' ';
