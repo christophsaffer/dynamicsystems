@@ -150,14 +150,10 @@ int main(int argc, char* argv[]) {
   // Output pixel vector into PGM File
   std::string filename = "picture.pgm";
   std::ofstream ostrm(filename);
-  ostrm << "P2" << '\n';
+  ostrm << "P5" << '\n';
   ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
   ostrm << 255 << '\n';  // max. gray value
-  for (int i = 0; i < buffer.size(); ++i) {
-    ostrm << colors[i] << ' ';
-    if (i % alpha_num_params == 0) {
-      ostrm << '\n';
-    }
-  }
+  // 1 byte per pixel
+  ostrm.write(reinterpret_cast<char*>(&colors),colors.size());
   return 0;
 }
