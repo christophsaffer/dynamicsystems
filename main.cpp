@@ -20,7 +20,7 @@ constexpr float PI = 3.141592635;
 constexpr float TWO_PI = 6.28318530718;  // 2 * PI;
 
 // return gray-value of pixel[alpha,beta], between 0..255
-int pixel(float alpha, float beta, aligned_vector<float> seed_x,
+float pixel(float alpha, float beta, aligned_vector<float> seed_x,
           aligned_vector<float> seed_y, int num_iterations) {
   int num_seeds = seed_x.size();
   assert(seed_y.size() == num_seeds);
@@ -48,11 +48,7 @@ int pixel(float alpha, float beta, aligned_vector<float> seed_x,
     }
   }
 
-  if (d > 1) {
-    return 255;
-  } else {
-    return (int)254 * d;
-  }
+  return d;
 }
 
 int main(int argc, char* argv[]) {
@@ -124,13 +120,8 @@ int main(int argc, char* argv[]) {
   // aligned_vector<float> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
   aligned_vector<float> y_start = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  // Output pixel vector into PGM File
-  std::string filename = "picture.pgm";
-  std::ofstream ostrm(filename);
-  ostrm << "P2" << '\n';
-  ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
-  ostrm << 255 << '\n';  // max. gray value
-  aligned_vector<int> buffer(alpha_num_params * beta_num_params);
+  aligned_vector<float> buffer(alpha_num_params * beta_num_params);
+  aligned_vector<int> colors(alpha_num_params * beta_num_params);
 
   auto time_start = std::chrono::system_clock::now();
 
@@ -146,8 +137,24 @@ int main(int argc, char* argv[]) {
       std::chrono::duration<float>(time_end - time_start).count();
   std::cout << "TIME: " << elapsed_seconds << std::endl;
 
+  // transform floats into grayscale-colors:
+  for (int i = 0; i < alpha_num_params * beta_num_params; ++i) {
+    if (buffer[i] > 1) {
+      colors[i] = 255;
+    } else {
+      colors[i] = (int) 254 * buffer[i];
+    }
+  }
+
+
+  // Output pixel vector into PGM File
+  std::string filename = "picture.pgm";
+  std::ofstream ostrm(filename);
+  ostrm << "P2" << '\n';
+  ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
+  ostrm << 255 << '\n';  // max. gray value
   for (int i = 0; i < buffer.size(); ++i) {
-    ostrm << buffer[i] << ' ';
+    ostrm << colors[i] << ' ';
     if (i % alpha_num_params == 0) {
       ostrm << '\n';
     }
