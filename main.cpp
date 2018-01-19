@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <boost/align/aligned_allocator.hpp>
+#include <boost/program_options.hpp>
 
 template <typename T>
 using aligned_allocator = boost::alignment::aligned_allocator<T, 64>;
@@ -56,41 +57,52 @@ int pixel(float alpha, float beta, aligned_vector<float> seed_x,
 
 int main(int argc, char* argv[]) {
   // get arguments from CLI
-  if (argc != 4) {
-    std::cerr << "usage: " << argv[0]
-              << " <num_iterations> <num_alpha_intervals> <num_beta_intervals>"
-              << std::endl;
-    return -1;
-  }
-  // Default parameters
-  int num_iterations = 100;
-  if (!(std::istringstream(argv[1]) >> num_iterations) ||
-      !(num_iterations > 0)) {
-    std::cerr << "Number of Iterations must be positive Integer!" << std::endl;
+  // these can be input by user
+  int num_iterations;
+  float alphamin;
+  float alphamax;
+  int alpha_num_intervals;
+  float betamin;
+  float betamax;
+  int beta_num_intervals;
+
+  namespace po = boost::program_options;
+  try {
+    po::options_description desc("Options");
+    desc.add_options()
+      ("help", "Help message")
+      ("iterations,n", po::value<int>(&num_iterations)->default_value(100), "Number of iterations")
+      ("amin,a", po::value<float>(&alphamin)->default_value(0), " α lower bound")
+      ("amax,A", po::value<float>(&alphamax)->default_value(1), " α upper bound")
+      ("alphas,w", po::value<int>(&alpha_num_intervals)->default_value(100), "α resolution/width of image")
+      ("betas,h", po::value<int>(&beta_num_intervals)->default_value(100), "β resolution/height of image")
+      ("bmin,b", po::value<float>(&betamin)->default_value(0), " β lower bound")
+      ("bmax,B", po::value<float>(&betamax)->default_value(1), " β upper bound")
+      ;
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+
+    if (vm.count("help")) {
+      std::cout << desc << std::endl;
+      return 0;
+    }
+
+    po::notify(vm);
+
+    // check if our integers are >0, else throw invalid-argument-error
+    if ( (num_iterations < 1) || (alpha_num_intervals < 1) || (beta_num_intervals <1) ) {
+      throw po::validation_error(po::validation_error::invalid_option_value);
+    }
+
+  } catch (po::error &e) {
+    std::cerr << e.what() << std::endl;
     return -1;
   }
 
-  float alphamin = 0;
-  float alphamax = 2;
-  int alpha_num_intervals = 600;
-  if (!(std::istringstream(argv[2]) >> alpha_num_intervals) ||
-      !(alpha_num_intervals > 0)) {
-    std::cerr << "Number of alpha-intervals must be positive Integer!"
-              << std::endl;
-    return -1;
-  }
+  // these are computed
   int alpha_num_params = alpha_num_intervals + 1;
   float alpha_interval_size = (alphamax - alphamin) / (alpha_num_intervals);
-
-  float betamin = 0;
-  float betamax = 0.5;
-  int beta_num_intervals = 200;
-  if (!(std::istringstream(argv[3]) >> beta_num_intervals) ||
-      !(beta_num_intervals > 0)) {
-    std::cerr << "Number of beta-intervals must be positive Integer!"
-              << std::endl;
-    return -1;
-  }
   int beta_num_params = beta_num_intervals + 1;
   float beta_interval_size = (betamax - betamin) / (beta_num_intervals);
 
