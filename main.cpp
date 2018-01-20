@@ -11,6 +11,8 @@
 #include <boost/align/aligned_allocator.hpp>
 #include <boost/program_options.hpp>
 
+#include "colormaps.hpp"
+
 template <typename T>
 using aligned_allocator = boost::alignment::aligned_allocator<T, 64>;
 template <typename T>
@@ -147,19 +149,13 @@ int main(int argc, char* argv[]) {
       colors_rgb[3*i+2] = 255;
     } else {
       colors[i] = (int) 254 * buffer[i];
-      // RGB color gradient: short rainbow
-      // https://www.particleincell.com/2014/colormap/
-      float a = (1-buffer[i])*4;
-      int x = floor(a);
-      float y = floor(255*(a-x));
-      int r,g,b;
-      switch (x) {
-        case 0: r=255;g=y;b=0;break;
-        case 1: r=255-y;g=255;b=0;break;
-        case 2: r=0;g=255;b=y;break;
-        case 3: r=0;g=255-y;b=255;break;
-        case 4: r=0;g=0;b=255;break;
-      }
+      // RGB color gradient: viridis from matplotlib
+      int idx = floor(buffer[i]*255);
+      
+      int r = floor(255*viridis[idx][0]);
+      int g = floor(255*viridis[idx][1]);
+      int b = floor(255*viridis[idx][2]);
+
       colors_rgb[3*i] = r;  // red
       colors_rgb[3*i+1] = g;// green
       colors_rgb[3*i+2] = b;  // blue
