@@ -166,6 +166,16 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  // Output result into .csv
+  std::string file_result = "result.csv";
+  std::ofstream ostrm_csv(file_result);
+  ostrm_csv << "alpha beta value\n";
+  for (int a = 0; a < alpha_num_params; a++) {
+    for (int b = beta_num_params - 1; b >= 0; b--) {
+      ostrm_csv << alphas[a] << ' ' << betas[b] << ' ' << buffer[(beta_num_params - b - 1) * alpha_num_params + a] << std::endl;
+    }
+  }
+
   // Output pixel vector into PGM File
   std::string filename = "picture.pgm";
   std::ofstream ostrm(filename);
