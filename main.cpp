@@ -122,6 +122,7 @@ int main(int argc, char* argv[]) {
 
   aligned_vector<float> buffer(alpha_num_params * beta_num_params);
   aligned_vector<int> colors(alpha_num_params * beta_num_params);
+  aligned_vector<int> colors_rgb(3 * alpha_num_params * beta_num_params);
 
   auto time_start = std::chrono::system_clock::now();
 
@@ -138,14 +139,32 @@ int main(int argc, char* argv[]) {
   std::cout << "TIME: " << elapsed_seconds << std::endl;
 
   // transform floats into grayscale-colors:
-  for (int i = 0; i < alpha_num_params * beta_num_params; ++i) {
+  for (int i = 0; i < alpha_num_params*beta_num_params; ++i) {
     if (buffer[i] > 1) {
       colors[i] = 255;
+      colors_rgb[3*i] = 255;
+      colors_rgb[3*i+1] = 255;
+      colors_rgb[3*i+2] = 255;
     } else {
       colors[i] = (int) 254 * buffer[i];
+      // RGB color gradient: short rainbow
+      // https://www.particleincell.com/2014/colormap/
+      float a = (1-buffer[i])*4;
+      int x = floor(a);
+      float y = floor(255*(a-x));
+      int r,g,b;
+      switch (x) {
+        case 0: r=255;g=y;b=0;break;
+        case 1: r=255-y;g=255;b=0;break;
+        case 2: r=0;g=255;b=y;break;
+        case 3: r=0;g=255-y;b=255;break;
+        case 4: r=0;g=0;b=255;break;
+      }
+      colors_rgb[3*i] = r;  // red
+      colors_rgb[3*i+1] = g;// green
+      colors_rgb[3*i+2] = b;  // blue
     }
   }
-
 
   // Output pixel vector into PGM File
   std::string filename = "picture.pgm";
@@ -154,6 +173,19 @@ int main(int argc, char* argv[]) {
   ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
   ostrm << 255 << '\n';  // max. gray value
   // 1 byte per pixel
-  ostrm.write(reinterpret_cast<char*>(&colors),colors.size());
+  for (int i=0;i<colors.size();++i){
+  ostrm.write(reinterpret_cast<char*>(&colors[i]),1);//colors.size());
+  }
+  // Output pixel vector into PPM File
+  std::string filename_rgb = "picture_rgb.ppm";
+  std::ofstream ostrm_rgb(filename_rgb);
+  ostrm_rgb << "P6" << '\n';
+  ostrm_rgb << alpha_num_params << ' ' << beta_num_params << '\n';
+  ostrm_rgb << 255 << '\n';  // max. gray value
+  // 3 byte per pixel
+  for (int i=0;i<colors_rgb.size();++i){
+    // das geht theoretisch auch mit dem ganzen Array, aber praktisch nicht?!
+  ostrm_rgb.write(reinterpret_cast<char*>(&colors_rgb[i]),1);//colors_rgb.size());
+  }
   return 0;
 }
