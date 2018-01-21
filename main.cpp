@@ -86,15 +86,15 @@ int main(int argc, char* argv[]) {
     betasp[i] = betamin + i * beta_interval_size;
   }
 
-  // aligned_vector<float> x_start = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+  //aligned_vector<float> x_start = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
   aligned_vector<float> x_start(num_seedpoints);
   aligned_vector<float> y_start(num_seedpoints);
   for (int i = 1; i < num_seedpoints + 1; ++i){
-    x_start[i-1] = i / (num_seedpoints + 1);
+    x_start[i-1] = (float)i / (num_seedpoints + 1);
     y_start[i-1] = 0;
   }
-  // aligned_vector<float> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
-  // aligned_vector<float> y_start = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  // // aligned_vector<float> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
+  //aligned_vector<float> y_start = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   aligned_vector<float> result(alpha_num_params * beta_num_params);
   aligned_vector<int> colors(alpha_num_params * beta_num_params);
