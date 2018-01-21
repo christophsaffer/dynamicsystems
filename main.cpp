@@ -27,6 +27,7 @@ int main(int argc, char* argv[]) {
   float betamax;
   int beta_num_intervals;
   int num_seedpoints;
+  bool output;
 
   namespace po = boost::program_options;
   try {
@@ -42,6 +43,7 @@ int main(int argc, char* argv[]) {
       ("bmin,b", po::value<float>(&betamin)->default_value(0), " β lower bound")
       ("bmax,B", po::value<float>(&betamax)->default_value(1), " β upper bound")
       ("seedpoints,S", po::value<int>(&num_seedpoints)->default_value(10), " Number of seedpoints (uniformly distributed in (0,1) )")
+      ("output,O", po::value<bool>(&output)->default_value(true), " Boolean flag for output")
       ;
 
     po::variables_map vm;
@@ -112,57 +114,60 @@ int main(int argc, char* argv[]) {
       std::chrono::duration<float>(time_end - time_start).count();
   std::cout << "TIME: " << elapsed_seconds << std::endl;
 
-  // Output result into .csv
-  std::string file_result = "result.csv";
-  std::ofstream ostrm_csv(file_result);
-  ostrm_csv << "alpha beta value\n";
-  for (int a = 0; a < alpha_num_params; a++) {
-    for (int b = beta_num_params - 1; b >= 0; b--) {
-      ostrm_csv << alphas[a] << ' ' << betas[b] << ' ' << result[(beta_num_params - b - 1) * alpha_num_params + a] << std::endl;
+
+  if(output){
+    // Output result into .csv
+    std::string file_result = "result.csv";
+    std::ofstream ostrm_csv(file_result);
+    ostrm_csv << "alpha beta value\n";
+    for (int a = 0; a < alpha_num_params; a++) {
+      for (int b = beta_num_params - 1; b >= 0; b--) {
+        ostrm_csv << alphas[a] << ' ' << betas[b] << ' ' << result[(beta_num_params - b - 1) * alpha_num_params + a] << std::endl;
+      }
     }
-  }
 
-  // transform floats into grayscale-colors:
-  for (int i = 0; i < alpha_num_params*beta_num_params; ++i) {
-    if (result[i] > threshold) {
-      colors[i] = 255;
-      colors_rgb[3*i] = 255;
-      colors_rgb[3*i+1] = 255;
-      colors_rgb[3*i+2] = 255;
-    } else {
-      colors[i] = (int) 254 * result[i]/threshold;
-      // RGB color gradient: viridis from matplotlib
-      int idx = floor(255*result[i]/threshold);
-      
-      int r = floor(255*viridis[idx][0]);
-      int g = floor(255*viridis[idx][1]);
-      int b = floor(255*viridis[idx][2]);
+    // transform floats into grayscale-colors:
+    for (int i = 0; i < alpha_num_params*beta_num_params; ++i) {
+      if (result[i] > threshold) {
+        colors[i] = 255;
+        colors_rgb[3*i] = 255;
+        colors_rgb[3*i+1] = 255;
+        colors_rgb[3*i+2] = 255;
+      } else {
+        colors[i] = (int) 254 * result[i]/threshold;
+        // RGB color gradient: viridis from matplotlib
+        int idx = floor(255*result[i]/threshold);
+        
+        int r = floor(255*viridis[idx][0]);
+        int g = floor(255*viridis[idx][1]);
+        int b = floor(255*viridis[idx][2]);
 
-      colors_rgb[3*i] = r;  // red
-      colors_rgb[3*i+1] = g;// green
-      colors_rgb[3*i+2] = b;  // blue
+        colors_rgb[3*i] = r;  // red
+        colors_rgb[3*i+1] = g;// green
+        colors_rgb[3*i+2] = b;  // blue
+      }
     }
-  }
 
-  // Output pixel vector into PGM File
-  std::string filename = "picture.pgm";
-  std::ofstream ostrm(filename);
-  ostrm << "P5" << '\n';
-  ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
-  ostrm << 255 << '\n';  // max. gray value
-  // 1 byte per pixel
-  for (int i=0;i<colors.size();++i){
-  ostrm.write(reinterpret_cast<char*>(&colors[i]),1);//colors.size());
-  }
-  // Output pixel vector into PPM File
-  std::string filename_rgb = "picture_rgb.ppm";
-  std::ofstream ostrm_rgb(filename_rgb);
-  ostrm_rgb << "P6" << '\n';
-  ostrm_rgb << alpha_num_params << ' ' << beta_num_params << '\n';
-  ostrm_rgb << 255 << '\n';  // max. gray value
-  // 3 byte per pixel
-  for (int i=0;i<colors_rgb.size();++i){
-    // das geht theoretisch auch mit dem ganzen Array, aber praktisch nicht?!
-  ostrm_rgb.write(reinterpret_cast<char*>(&colors_rgb[i]),1);//colors_rgb.size());
+    // Output pixel vector into PGM File
+    std::string filename = "picture.pgm";
+    std::ofstream ostrm(filename);
+    ostrm << "P5" << '\n';
+    ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
+    ostrm << 255 << '\n';  // max. gray value
+    // 1 byte per pixel
+    for (int i=0;i<colors.size();++i){
+    ostrm.write(reinterpret_cast<char*>(&colors[i]),1);//colors.size());
+    }
+    // Output pixel vector into PPM File
+    std::string filename_rgb = "picture_rgb.ppm";
+    std::ofstream ostrm_rgb(filename_rgb);
+    ostrm_rgb << "P6" << '\n';
+    ostrm_rgb << alpha_num_params << ' ' << beta_num_params << '\n';
+    ostrm_rgb << 255 << '\n';  // max. gray value
+    // 3 byte per pixel
+    for (int i=0;i<colors_rgb.size();++i){
+      // das geht theoretisch auch mit dem ganzen Array, aber praktisch nicht?!
+    ostrm_rgb.write(reinterpret_cast<char*>(&colors_rgb[i]),1);//colors_rgb.size());
+    }
   }
 }
