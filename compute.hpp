@@ -14,5 +14,5 @@ constexpr float PI = 3.141592635;
 constexpr float TWO_PI = 6.28318530718;  // 2 * PI;
 
 float compute(float alpha, float beta, aligned_vector<float> seed_x,
-          aligned_vector<float> seed_y, int num_iterations);
+          aligned_vector<float> seed_y, int num_iterations, float threshold);
 #endif

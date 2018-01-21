@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
   // get arguments from CLI
   // these can be input by user
   int num_iterations;
+  float threshold;
   float alphamin;
   float alphamax;
   int alpha_num_intervals;
@@ -32,6 +33,7 @@ int main(int argc, char* argv[]) {
     desc.add_options()
       ("help", "Help message")
       ("iterations,n", po::value<int>(&num_iterations)->default_value(100), "Number of iterations")
+      ("threshold,s", po::value<float>(&threshold)->default_value(1), " Threshold above that computation is stopped")
       ("amin,a", po::value<float>(&alphamin)->default_value(0), " α lower bound")
       ("amax,A", po::value<float>(&alphamax)->default_value(1), " α upper bound")
       ("alphas,w", po::value<int>(&alpha_num_intervals)->default_value(100), "α resolution/width of image")
@@ -114,15 +116,15 @@ int main(int argc, char* argv[]) {
 
   // transform floats into grayscale-colors:
   for (int i = 0; i < alpha_num_params*beta_num_params; ++i) {
-    if (buffer[i] > 1) {
+    if (result[i] > threshold) {
       colors[i] = 255;
       colors_rgb[3*i] = 255;
       colors_rgb[3*i+1] = 255;
       colors_rgb[3*i+2] = 255;
     } else {
-      colors[i] = (int) 254 * buffer[i];
+      colors[i] = (int) 254 * result[i]/threshold;
       // RGB color gradient: viridis from matplotlib
-      int idx = floor(buffer[i]*255);
+      int idx = floor(255*result[i]/threshold);
       
       int r = floor(255*viridis[idx][0]);
       int g = floor(255*viridis[idx][1]);
