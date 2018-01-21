@@ -17,5 +17,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lboost_program_options")
 
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  target_compile_options(dynamicsystems PRIVATE "-std=c++11" "-qopt-report=5" "-qopt-report-phase=vec" "-xhost")
+  target_compile_options(dynamicsystems PRIVATE "-qopt-report=5" "-qopt-report-phase=vec" "-xhost")
 endif()
