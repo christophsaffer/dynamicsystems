@@ -26,20 +26,22 @@ int main(int argc, char* argv[]) {
   float betamin;
   float betamax;
   int beta_num_intervals;
+  int num_seedpoints;
 
   namespace po = boost::program_options;
   try {
     po::options_description desc("Options");
     desc.add_options()
       ("help", "Help message")
-      ("iterations,n", po::value<int>(&num_iterations)->default_value(100), "Number of iterations")
+      ("iterations,n", po::value<int>(&num_iterations)->default_value(100), " Number of iterations")
       ("threshold,s", po::value<float>(&threshold)->default_value(1), " Threshold above that computation is stopped")
       ("amin,a", po::value<float>(&alphamin)->default_value(0), " α lower bound")
       ("amax,A", po::value<float>(&alphamax)->default_value(1), " α upper bound")
-      ("alphas,w", po::value<int>(&alpha_num_intervals)->default_value(100), "α resolution/width of image")
-      ("betas,h", po::value<int>(&beta_num_intervals)->default_value(100), "β resolution/height of image")
+      ("alphas,w", po::value<int>(&alpha_num_intervals)->default_value(100), " α resolution/width of image")
+      ("betas,h", po::value<int>(&beta_num_intervals)->default_value(100), " β resolution/height of image")
       ("bmin,b", po::value<float>(&betamin)->default_value(0), " β lower bound")
       ("bmax,B", po::value<float>(&betamax)->default_value(1), " β upper bound")
+      ("seedpoints,S", po::value<int>(&num_seedpoints)->default_value(10), " Number of seedpoints (uniformly distributed in (0,1) )")
       ;
 
     po::variables_map vm;
@@ -82,9 +84,15 @@ int main(int argc, char* argv[]) {
     betasp[i] = betamin + i * beta_interval_size;
   }
 
-  aligned_vector<float> x_start = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+  // aligned_vector<float> x_start = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+  aligned_vector<float> x_start(num_seedpoints);
+  aligned_vector<float> y_start(num_seedpoints);
+  for (int i = 1; i < num_seedpoints + 1; ++i){
+    x_start[i-1] = i / (num_seedpoints + 1);
+    y_start[i-1] = 0;
+  }
   // aligned_vector<float> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
-  aligned_vector<float> y_start = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  // aligned_vector<float> y_start = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   aligned_vector<float> result(alpha_num_params * beta_num_params);
   aligned_vector<int> colors(alpha_num_params * beta_num_params);
