@@ -8,50 +8,12 @@
 #include <sstream>
 #include <vector>
 
-#include <boost/align/aligned_allocator.hpp>
 #include <boost/program_options.hpp>
 
 #include "colormaps.hpp"
+#include "compute.hpp"
 
-template <typename T>
-using aligned_allocator = boost::alignment::aligned_allocator<T, 64>;
-template <typename T>
-using aligned_vector = std::vector<T, aligned_allocator<T>>;
 
-constexpr float PI = 3.141592635;
-constexpr float TWO_PI = 6.28318530718;  // 2 * PI;
-
-// return gray-value of pixel[alpha,beta], between 0..255
-float pixel(float alpha, float beta, aligned_vector<float> seed_x,
-          aligned_vector<float> seed_y, int num_iterations) {
-  int num_seeds = seed_x.size();
-  assert(seed_y.size() == num_seeds);
-
-  aligned_vector<float> x = seed_x;
-  aligned_vector<float> y = seed_y;
-
-  float* xp = x.data();
-  float* yp = y.data();
-
-  float d = 0.0;
-
-  for (int i = 0; i < num_iterations && d < 1; i++) {
-#pragma omp simd aligned(xp, yp : 64)
-    for (int s = 0; s < num_seeds; s++) {
-      yp[s] = yp[s] + beta * std::sin(TWO_PI * xp[s]);
-    }
-#pragma omp simd aligned(xp, yp : 64)
-    for (int s = 0; s < num_seeds; s++) {
-      xp[s] = xp[s] + alpha * std::sin(TWO_PI * yp[s]);
-    }
-
-    for (int s = 0; s < num_seeds; s++) {
-      d = std::max(d, std::abs(yp[s]));
-    }
-  }
-
-  return d;
-}
 
 int main(int argc, char* argv[]) {
   // get arguments from CLI
@@ -122,7 +84,7 @@ int main(int argc, char* argv[]) {
   // aligned_vector<float> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
   aligned_vector<float> y_start = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  aligned_vector<float> buffer(alpha_num_params * beta_num_params);
+  aligned_vector<float> result(alpha_num_params * beta_num_params);
   aligned_vector<int> colors(alpha_num_params * beta_num_params);
   aligned_vector<int> colors_rgb(3 * alpha_num_params * beta_num_params);
 
@@ -131,14 +93,24 @@ int main(int argc, char* argv[]) {
 #pragma omp parallel for schedule(dynamic)
   for (int a = 0; a < alpha_num_params; a++) {
     for (int b = beta_num_params - 1; b >= 0; b--) {
-      buffer[(beta_num_params - b - 1) * alpha_num_params + a] =
-          pixel(alphas[a], betas[b], x_start, y_start, num_iterations);
+      result[(beta_num_params - b - 1) * alpha_num_params + a] =
+          compute(alphas[a], betas[b], x_start, y_start, num_iterations, threshold);
     }
   }
   auto time_end = std::chrono::system_clock::now();
   float const elapsed_seconds =
       std::chrono::duration<float>(time_end - time_start).count();
   std::cout << "TIME: " << elapsed_seconds << std::endl;
+
+  // Output result into .csv
+  std::string file_result = "result.csv";
+  std::ofstream ostrm_csv(file_result);
+  ostrm_csv << "alpha beta value\n";
+  for (int a = 0; a < alpha_num_params; a++) {
+    for (int b = beta_num_params - 1; b >= 0; b--) {
+      ostrm_csv << alphas[a] << ' ' << betas[b] << ' ' << result[(beta_num_params - b - 1) * alpha_num_params + a] << std::endl;
+    }
+  }
 
   // transform floats into grayscale-colors:
   for (int i = 0; i < alpha_num_params*beta_num_params; ++i) {
@@ -159,16 +131,6 @@ int main(int argc, char* argv[]) {
       colors_rgb[3*i] = r;  // red
       colors_rgb[3*i+1] = g;// green
       colors_rgb[3*i+2] = b;  // blue
-    }
-  }
-
-  // Output result into .csv
-  std::string file_result = "result.csv";
-  std::ofstream ostrm_csv(file_result);
-  ostrm_csv << "alpha beta value\n";
-  for (int a = 0; a < alpha_num_params; a++) {
-    for (int b = beta_num_params - 1; b >= 0; b--) {
-      ostrm_csv << alphas[a] << ' ' << betas[b] << ' ' << buffer[(beta_num_params - b - 1) * alpha_num_params + a] << std::endl;
     }
   }
 
@@ -193,5 +155,4 @@ int main(int argc, char* argv[]) {
     // das geht theoretisch auch mit dem ganzen Array, aber praktisch nicht?!
   ostrm_rgb.write(reinterpret_cast<char*>(&colors_rgb[i]),1);//colors_rgb.size());
   }
-  return 0;
 }
