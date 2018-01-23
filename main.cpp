@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
   int beta_num_intervals;
   int num_seedpoints;
   bool output;
+  std::vector<float> seedpoints;
 
   namespace po = boost::program_options;
   try {
@@ -47,10 +48,13 @@ int main(int argc, char* argv[]) {
         " β lower bound")("bmax,B",
                           po::value<float>(&betamax)->default_value(1),
                           " β upper bound")(
-        "seedpoints,S", po::value<int>(&num_seedpoints)->default_value(10),
+        "num_seedpoints,N", po::value<int>(&num_seedpoints)->default_value(8),
         " Number of seedpoints (uniformly distributed in (0,1) )")(
+        "seedpoints,S", po::value<std::vector<float>>(&seedpoints)->multitoken(), 
+        " Values for explicit seedpoints")(
         "output,O", po::value<bool>(&output)->default_value(true),
         " Boolean flag for output");
+      
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -73,13 +77,14 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
+
   // these are computed
   int alpha_num_params = alpha_num_intervals + 1;
   float alpha_interval_size = (alphamax - alphamin) / (alpha_num_intervals);
   int beta_num_params = beta_num_intervals + 1;
   float beta_interval_size = (betamax - betamin) / (beta_num_intervals);
 
-  // fill Parametervectors:
+  // fill prametervectors alpha and beta
   aligned_vector<float> alphas(alpha_num_params);
   float* alphasp = alphas.data();
 #pragma omp simd aligned(alphasp : 64)
@@ -93,23 +98,30 @@ int main(int argc, char* argv[]) {
     betasp[i] = betamin + i * beta_interval_size;
   }
 
-  // aligned_vector<float> x_start = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,
-  // 0.9};
+  // Initialization and output of seedpoints 
+  std::cout << "Following seedpoints are used for computation:" << std::endl;
   aligned_vector<float> x_start(num_seedpoints);
   aligned_vector<float> y_start(num_seedpoints);
-  for (int i = 1; i < num_seedpoints + 1; ++i) {
-    x_start[i - 1] = 0.5f * static_cast<float>(i) / (num_seedpoints + 1);
+  for (int i = 1; i < num_seedpoints - seedpoints.size() + 1; ++i) {
+    x_start[i - 1] = 0.5f * static_cast<float>(i) / (num_seedpoints - seedpoints.size() + 1);
     y_start[i - 1] = 0;
+    std::cout << x_start[i - 1] << ", ";
   }
-  // // aligned_vector<float> y_start = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
-  // aligned_vector<float> y_start = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  for (int i = 0; i < seedpoints.size(); ++i) {
+    x_start[num_seedpoints - seedpoints.size() + i] = seedpoints[i];
+    y_start[num_seedpoints - seedpoints.size() + i] = 0;
+    std::cout << x_start[num_seedpoints - seedpoints.size() + i] << ", ";
+  }
+  std::cout << '\n';
 
+  // Initialization pixel values and color vectors
   aligned_vector<float> result(alpha_num_params * beta_num_params);
   aligned_vector<int> colors(alpha_num_params * beta_num_params);
   aligned_vector<int> colors_rgb(3 * alpha_num_params * beta_num_params);
 
   auto time_start = std::chrono::system_clock::now();
 
+  // Computation 
 #pragma omp parallel for schedule(dynamic)
   for (int a = 0; a < alpha_num_params; a++) {
     for (int b = beta_num_params - 1; b >= 0; b--) {
@@ -122,6 +134,7 @@ int main(int argc, char* argv[]) {
       std::chrono::duration<float>(time_end - time_start).count();
   std::cout << "TIME: " << elapsed_seconds << std::endl;
 
+  // Generate output
   if (output) {
     // Output result into .csv
     std::string file_result = "result.csv";
