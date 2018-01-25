@@ -128,8 +128,8 @@ int main(int argc, char* argv[]) {
 
   // Computation 
 #pragma omp parallel for schedule(dynamic)
-  for (int a = 0; a < alpha_num_params; a++) {
-    for (int b = beta_num_params - 1; b >= 0; b--) {
+  for (int b = beta_num_params - 1; b >= 0; b--) {
+    for (int a = 0; a < alpha_num_params; a++) {
       result[(beta_num_params - b - 1) * alpha_num_params + a] = compute(
           alphas[a], betas[b], x_start, y_start, num_iterations, threshold);
     }
@@ -146,8 +146,8 @@ int main(int argc, char* argv[]) {
     std::string file_result = "result.csv";
     std::ofstream ostrm_csv(file_result);
     ostrm_csv << "alpha beta value\n";
-    for (int a = 0; a < alpha_num_params; a++) {
-      for (int b = beta_num_params - 1; b >= 0; b--) {
+    for (int b = beta_num_params - 1; b >= 0; b--) {
+      for (int a = 0; a < alpha_num_params; a++) {
         ostrm_csv << alphas[a] << ' ' << betas[b] << ' '
                   << result[(beta_num_params - b - 1) * alpha_num_params + a]
                   << std::endl;
