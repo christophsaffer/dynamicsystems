@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
       " Number of seedpoints (uniformly distributed in (0,1) )")
       ("seedpoints,S", po::value<std::vector<float>>(&seedpoints)->multitoken(),
       " Values for explicit seedpoints")
-      ("output,O", po::value<bool>(&output)->default_value(true),
-      " Boolean flag for output")
+      ("outputcsv,O", po::value<bool>(&output)->default_value(false),
+      " Boolean flag for output a csv file")
       ;
       
 
@@ -137,7 +137,14 @@ int main(int argc, char* argv[]) {
       std::chrono::duration<float>(time_end - time_start).count();
   std::cout << "TIME for computation: " << elapsed_seconds << std::endl;
 
-  // Generate output
+
+  time_start = std::chrono::system_clock::now();
+  write_png("picture.png", result.data(), threshold, alpha_num_params, beta_num_params);
+  time_end = std::chrono::system_clock::now();
+  elapsed_seconds =  std::chrono::duration<float>(time_end - time_start).count();
+  std::cout << "TIME for picture: " << elapsed_seconds << std::endl;
+
+    // Generate output
   if (output) {
     time_start = std::chrono::system_clock::now();
    // Output result into .csv
@@ -154,12 +161,5 @@ int main(int argc, char* argv[]) {
   time_end = std::chrono::system_clock::now();
   elapsed_seconds =  std::chrono::duration<float>(time_end - time_start).count();
   std::cout << "TIME for csv: " << elapsed_seconds << std::endl;
-
-
-  time_start = std::chrono::system_clock::now();
-  write_png("picture.png", result.data(), threshold, alpha_num_params, beta_num_params);
-  time_end = std::chrono::system_clock::now();
-  elapsed_seconds =  std::chrono::duration<float>(time_end - time_start).count();
-  std::cout << "TIME for picture: " << elapsed_seconds << std::endl;
   }
 }
