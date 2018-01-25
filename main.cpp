@@ -133,13 +133,14 @@ int main(int argc, char* argv[]) {
     }
   }
   auto time_end = std::chrono::system_clock::now();
-  float const elapsed_seconds =
+  float elapsed_seconds =
       std::chrono::duration<float>(time_end - time_start).count();
-  std::cout << "TIME: " << elapsed_seconds << std::endl;
+  std::cout << "TIME for computation: " << elapsed_seconds << std::endl;
 
   // Generate output
   if (output) {
-    // Output result into .csv
+    time_start = std::chrono::system_clock::now();
+   // Output result into .csv
     std::string file_result = "result.csv";
     std::ofstream ostrm_csv(file_result);
     ostrm_csv << "alpha beta value\n";
@@ -150,7 +151,15 @@ int main(int argc, char* argv[]) {
                   << std::endl;
       }
     }
+  time_end = std::chrono::system_clock::now();
+  elapsed_seconds =  std::chrono::duration<float>(time_end - time_start).count();
+  std::cout << "TIME for csv: " << elapsed_seconds << std::endl;
 
-    write_png("picture.png", result.data(), threshold, alpha_num_params, beta_num_params);
+
+  time_start = std::chrono::system_clock::now();
+  write_png("picture.png", result.data(), threshold, alpha_num_params, beta_num_params);
+  time_end = std::chrono::system_clock::now();
+  elapsed_seconds =  std::chrono::duration<float>(time_end - time_start).count();
+  std::cout << "TIME for picture: " << elapsed_seconds << std::endl;
   }
 }
