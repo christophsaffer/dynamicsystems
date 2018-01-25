@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
       for (int b = beta_num_params - 1; b >= 0; b--) {
         ostrm_csv << alphas[a] << ' ' << betas[b] << ' '
                   << result[(beta_num_params - b - 1) * alpha_num_params + a]
-                  << std::endl;
+                  << '\n';
       }
     }
   time_end = std::chrono::system_clock::now();
