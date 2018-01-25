@@ -14,6 +14,7 @@
 
 #include "colormaps.hpp"
 #include "compute.hpp"
+#include "picture.hpp"
 
 int main(int argc, char* argv[]) {
   // get arguments from CLI
@@ -150,73 +151,6 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    // transform floats into grayscale-colors:
-    for (int i = 0; i < alpha_num_params * beta_num_params; ++i) {
-      if (result[i] > threshold) {
-        colors[i] = 255;
-        colors_rgb[3 * i] = 255;
-        colors_rgb[3 * i + 1] = 255;
-        colors_rgb[3 * i + 2] = 255;
-      } else {
-        colors[i] = floor(254 * result[i] / threshold);
-        // RGB color gradient: viridis from matplotlib
-        int idx = floor(255 * result[i] / threshold);
-
-        unsigned char r = floor(255 * viridis[idx][0]);
-        unsigned char g = floor(255 * viridis[idx][1]);
-        unsigned char b = floor(255 * viridis[idx][2]);
-
-        colors_rgb[3 * i] = r;      // red
-        colors_rgb[3 * i + 1] = g;  // green
-        colors_rgb[3 * i + 2] = b;  // blue
-      }
-    }
-
-    // Output pixel vector into PGM File
-    std::ofstream ostrm("picture.pgm", std::ofstream::binary);
-    ostrm << "P5" << '\n';
-    ostrm << alpha_num_params << ' ' << beta_num_params << '\n';
-    ostrm << 255 << '\n';  // max. gray value
-    // 1 byte per pixel
-    for (int i = 0; i < colors.size(); ++i) {
-      ostrm << static_cast<char>(colors[i]);  // colors.size());
-    }
-    // Output pixel vector into PPM File
-    std::ofstream ostrm_rgb("picture_rgb.ppm", std::ofstream::binary);
-    ostrm_rgb << "P6" << '\n';
-    ostrm_rgb << alpha_num_params << ' ' << beta_num_params << '\n';
-    ostrm_rgb << 255 << '\n';  // max. gray value
-    // 3 byte per pixel
-    for (int i = 0; i < colors_rgb.size(); ++i) {
-      // das geht theoretisch auch mit dem ganzen Array, aber praktisch nicht?!
-      ostrm_rgb << static_cast<char>(colors_rgb[i]);
-    }
-
-    // write to libpng
-      png_image img;
-      memset(&img, 0, sizeof(img));
-      img.version = PNG_IMAGE_VERSION;
-      img.opaque = NULL;
-      img.width = alpha_num_params;
-      img.height = beta_num_params;
-      img.format = PNG_FORMAT_RGB;
-      img.flags = 0;
-      img.colormap_entries = 0;
-
-      // set to negative for bottom-up image
-      const int row_stride = alpha_num_params * 3;
-
-      png_bytep buffer = colors_rgb.data();
-
-      png_image_write_to_file(&img, "picture_rgb.png", false, buffer, row_stride, NULL);
-      if (PNG_IMAGE_FAILED(img)) {
-        std::cerr << img.message << std::endl;
-        return -1;
-      } else {
-        if (img.warning_or_error != 0) {
-          std::cerr << img.message << std::endl;
-        }
-      }
-      std::cout << "png written" << std::endl;
+    write_png("picture.png", result.data(), threshold, alpha_num_params, beta_num_params);
   }
 }
