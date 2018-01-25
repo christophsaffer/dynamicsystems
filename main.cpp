@@ -34,29 +34,31 @@ int main(int argc, char* argv[]) {
   namespace po = boost::program_options;
   try {
     po::options_description desc("Options");
-    desc.add_options()("help", "Help message")(
-        "iterations,n", po::value<int>(&num_iterations)->default_value(100),
-        " Number of iterations")(
-        "threshold,s", po::value<float>(&threshold)->default_value(1),
-        " Threshold above that computation is stopped")(
-        "amin,a", po::value<float>(&alphamin)->default_value(0),
-        " α lower bound")("amax,A",
-                          po::value<float>(&alphamax)->default_value(1),
-                          " α upper bound")(
-        "alphas,w", po::value<int>(&alpha_num_intervals)->default_value(100),
-        " α resolution/width of image")(
-        "betas,h", po::value<int>(&beta_num_intervals)->default_value(100),
-        " β resolution/height of image")(
-        "bmin,b", po::value<float>(&betamin)->default_value(0),
-        " β lower bound")("bmax,B",
-                          po::value<float>(&betamax)->default_value(1),
-                          " β upper bound")(
-        "num_seedpoints,N", po::value<int>(&num_seedpoints)->default_value(8),
-        " Number of seedpoints (uniformly distributed in (0,1) )")(
-        "seedpoints,S", po::value<std::vector<float>>(&seedpoints)->multitoken(), 
-        " Values for explicit seedpoints")(
-        "output,O", po::value<bool>(&output)->default_value(true),
-        " Boolean flag for output");
+    desc.add_options()
+      ("help", "Help message")
+      ("iterations,n", po::value<int>(&num_iterations)->default_value(100),
+      " Number of iterations")
+      ("width,w", po::value<int>(&alpha_num_intervals)->default_value(100),
+      " width of image (alpha resolution)")
+      ("height,h", po::value<int>(&beta_num_intervals)->default_value(100),
+      " height of image (beta resolution)")
+      ("threshold,s", po::value<float>(&threshold)->default_value(1), 
+      " Threshold above that computation is stopped")
+      ("amin,a", po::value<float>(&alphamin)->default_value(0),
+      " alpha lower bound")
+      ("amax,A", po::value<float>(&alphamax)->default_value(1),
+      " alpha upper bound")
+      ("bmin,b", po::value<float>(&betamin)->default_value(0),
+      " beta lower bound")
+      ("bmax,B", po::value<float>(&betamax)->default_value(1),
+      " beta upper bound")
+      ("num_seedpoints,N", po::value<int>(&num_seedpoints)->default_value(8),
+      " Number of seedpoints (uniformly distributed in (0,1) )")
+      ("seedpoints,S", po::value<std::vector<float>>(&seedpoints)->multitoken(),
+      " Values for explicit seedpoints")
+      ("output,O", po::value<bool>(&output)->default_value(true),
+      " Boolean flag for output")
+      ;
       
 
     po::variables_map vm;
