@@ -121,8 +121,6 @@ int main(int argc, char* argv[]) {
 
   // Initialization pixel values and color vectors
   aligned_vector<float> result(alpha_num_params * beta_num_params);
-  aligned_vector<unsigned char> colors(alpha_num_params * beta_num_params);
-  aligned_vector<unsigned char> colors_rgb(3 * alpha_num_params * beta_num_params);
 
   auto time_start = std::chrono::system_clock::now();
 
@@ -150,7 +148,7 @@ int main(int argc, char* argv[]) {
       for (int a = 0; a < alpha_num_params; a++) {
         ostrm_csv << alphas[a] << ' ' << betas[b] << ' '
                   << result[(beta_num_params - b - 1) * alpha_num_params + a]
-                  << std::endl;
+                  << '\n';
       }
     }
   time_end = std::chrono::system_clock::now();
