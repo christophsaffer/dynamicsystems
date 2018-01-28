@@ -9,8 +9,9 @@ add_executable(dynamicsystems main.cpp compute.cpp picture.cpp)
 
 find_package(FLTK)
 find_package(OpenGL)
-add_executable(hello hello.cpp)
-target_link_libraries(hello ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${-lfltk_images} ${-lfltk_png}")
+add_executable(gui gui.cpp)
+target_link_libraries(gui ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES})
 
 if(OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
