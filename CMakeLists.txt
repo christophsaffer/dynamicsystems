@@ -6,6 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 find_package(OpenMP)
 add_executable(dynamicsystems main.cpp compute.cpp picture.cpp)
+
+find_package(FLTK)
+find_package(OpenGL)
+add_executable(hello hello.cpp)
+target_link_libraries(hello ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES})
+
 if(OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
