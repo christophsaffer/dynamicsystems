@@ -1,20 +1,9 @@
-#include <algorithm>
-#include <cassert>
-#include <chrono>
-#include <cmath>
-#include <fstream>
 #include <iostream>
-#include <random>
-#include <sstream>
 #include <vector>
 
 #include <boost/program_options.hpp>
 
-#include <png.h>
-
-#include "colormaps.hpp"
 #include "compute.hpp"
-#include "picture.hpp"
 
 int main(int argc, char* argv[]) {
   // get arguments from CLI
@@ -28,7 +17,7 @@ int main(int argc, char* argv[]) {
   float betamax;
   int beta_num_intervals;
   int num_seedpoints;
-  bool output;
+  bool output_csv;
   std::vector<float> seedpoints;
 
   namespace po = boost::program_options;
@@ -56,7 +45,7 @@ int main(int argc, char* argv[]) {
       " Number of seedpoints (uniformly distributed in (0,1) )")
       ("seedpoints,S", po::value<std::vector<float>>(&seedpoints)->multitoken(),
       " Values for explicit seedpoints")
-      ("csv,O", po::value<bool>(&output)->default_value(false),
+      ("csv,O", po::value<bool>(&output_csv)->default_value(false),
       " Boolean flag for output a csv file")
       ;
       
@@ -82,84 +71,18 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
+  compute_all(
+    num_iterations,
+    threshold,
+    alphamin,
+    alphamax,
+    alpha_num_intervals,
+    betamin,
+    betamax,
+    beta_num_intervals,
+    num_seedpoints,
+    output_csv,
+    seedpoints
+  );
 
-  // these are computed
-  int alpha_num_params = alpha_num_intervals + 1;
-  float alpha_interval_size = (alphamax - alphamin) / (alpha_num_intervals);
-  int beta_num_params = beta_num_intervals + 1;
-  float beta_interval_size = (betamax - betamin) / (beta_num_intervals);
-
-  // fill prametervectors alpha and beta
-  aligned_vector<float> alphas(alpha_num_params);
-  float* alphasp = alphas.data();
-#pragma omp simd aligned(alphasp : 64)
-  for (int i = 0; i < alpha_num_params; i++) {
-    alphasp[i] = alphamin + i * alpha_interval_size;
-  }
-  aligned_vector<float> betas(beta_num_params);
-  float* betasp = betas.data();
-#pragma omp simd aligned(betasp : 64)
-  for (int i = 0; i < beta_num_params; i++) {
-    betasp[i] = betamin + i * beta_interval_size;
-  }
-
-  // Initialization and output of seedpoints 
-  std::cout << "Following seedpoints are used for computation:" << std::endl;
-  aligned_vector<float> x_start(num_seedpoints);
-  aligned_vector<float> y_start(num_seedpoints);
-  for (int i = 1; i < num_seedpoints - seedpoints.size() + 1; ++i) {
-    x_start[i - 1] = 0.5f * static_cast<float>(i) / (num_seedpoints - seedpoints.size() + 1);
-    y_start[i - 1] = 0;
-    std::cout << x_start[i - 1] << ", ";
-  }
-  for (int i = 0; i < seedpoints.size(); ++i) {
-    x_start[num_seedpoints - seedpoints.size() + i] = seedpoints[i];
-    y_start[num_seedpoints - seedpoints.size() + i] = 0;
-    std::cout << x_start[num_seedpoints - seedpoints.size() + i] << ", ";
-  }
-  std::cout << '\n';
-
-  // Initialization pixel values and color vectors
-  aligned_vector<float> result(alpha_num_params * beta_num_params);
-
-  auto time_start = std::chrono::system_clock::now();
-
-  // Computation 
-#pragma omp parallel for schedule(dynamic)
-  for (int b = beta_num_params - 1; b >= 0; b--) {
-    for (int a = 0; a < alpha_num_params; a++) {
-      result[(beta_num_params - b - 1) * alpha_num_params + a] = compute(
-          alphas[a], betas[b], x_start, y_start, num_iterations, threshold);
-    }
-  }
-  auto time_end = std::chrono::system_clock::now();
-  float elapsed_seconds =
-      std::chrono::duration<float>(time_end - time_start).count();
-  std::cout << "TIME for computation: " << elapsed_seconds << std::endl;
-
-
-  time_start = std::chrono::system_clock::now();
-  write_png("picture.png", result.data(), threshold, alpha_num_params, beta_num_params);
-  time_end = std::chrono::system_clock::now();
-  elapsed_seconds =  std::chrono::duration<float>(time_end - time_start).count();
-  std::cout << "TIME for picture: " << elapsed_seconds << std::endl;
-
-    // Generate output
-  if (output) {
-    time_start = std::chrono::system_clock::now();
-   // Output result into .csv
-    std::string file_result = "result.csv";
-    std::ofstream ostrm_csv(file_result);
-    ostrm_csv << "alpha beta value\n";
-    for (int b = beta_num_params - 1; b >= 0; b--) {
-      for (int a = 0; a < alpha_num_params; a++) {
-        ostrm_csv << alphas[a] << ' ' << betas[b] << ' '
-                  << result[(beta_num_params - b - 1) * alpha_num_params + a]
-                  << '\n';
-      }
-    }
-  time_end = std::chrono::system_clock::now();
-  elapsed_seconds =  std::chrono::duration<float>(time_end - time_start).count();
-  std::cout << "TIME for csv: " << elapsed_seconds << std::endl;
-  }
 }
