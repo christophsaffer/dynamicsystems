@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
       " width of image (alpha resolution)")
       ("height,h", po::value<int>(&beta_num_intervals)->default_value(100),
       " height of image (beta resolution)")
-      ("threshold,s", po::value<float>(&threshold)->default_value(1), 
+      ("threshold,t", po::value<float>(&threshold)->default_value(1), 
       " Threshold above that computation is stopped")
       ("amin,a", po::value<float>(&alphamin)->default_value(0),
       " alpha lower bound")
@@ -52,11 +52,11 @@ int main(int argc, char* argv[]) {
       " beta lower bound")
       ("bmax,B", po::value<float>(&betamax)->default_value(1),
       " beta upper bound")
-      ("num_seedpoints,N", po::value<int>(&num_seedpoints)->default_value(8),
+      ("num_seedpoints,m", po::value<int>(&num_seedpoints)->default_value(8),
       " Number of seedpoints (uniformly distributed in (0,1) )")
       ("seedpoints,S", po::value<std::vector<float>>(&seedpoints)->multitoken(),
       " Values for explicit seedpoints")
-      ("outputcsv,O", po::value<bool>(&output)->default_value(false),
+      ("csv,O", po::value<bool>(&output)->default_value(false),
       " Boolean flag for output a csv file")
       ;
       
