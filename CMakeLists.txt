@@ -27,11 +27,17 @@ target_link_libraries(dynamicsystems-cli PRIVATE ${PNG_LIBRARY} ${Boost_LIBRARIE
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   if (WIN32)
-    target_compile_options(dynamicsystems PRIVATE "/Qopt-report:5"
+    target_compile_options(dynamicsystems-cli PRIVATE "/Qopt-report:5"
+                                                  "/Qopt-report-phase:vec"
+                                                  "/QxHost")
+    target_compile_options(dynamicsystems-gui PRIVATE "/Qopt-report:5"
                                                   "/Qopt-report-phase:vec"
                                                   "/QxHost")
   else(WIN32)
-    target_compile_options(dynamicsystems PRIVATE "-qopt-report=5"
+    target_compile_options(dynamicsystems-cli PRIVATE "-qopt-report=5"
+                                                  "-qopt-report-phase=vec"
+                                                  "-xhost")
+    target_compile_options(dynamicsystems-gui PRIVATE "-qopt-report=5"
                                                   "-qopt-report-phase=vec"
                                                   "-xhost")
   endif(WIN32)
