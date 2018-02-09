@@ -169,6 +169,6 @@ void SimpleWindow::callback_compute_il() {
   scrollbox->image(image);
   scrollbox->resize(0,0,image->w(),image->h());
   redraw();
-  std::cout << "done." << std::endl;
+  std::cout << "finished computation." << std::endl;
 }
 
