@@ -16,7 +16,7 @@ float compute(float alpha, float beta, aligned_vector<float> seed_x,
 
   float d = 0.0;
 
-  for (int i = 0; i < num_iterations && d < threshold; i++) {
+  for (int i = 0; i < num_iterations && d <= threshold; i++) {
 #pragma omp simd aligned(xp, yp : 64)
     for (int s = 0; s < num_seeds; s++) {
       yp[s] = yp[s] + beta * std::sin(TWO_PI * xp[s]);
