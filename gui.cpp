@@ -47,6 +47,7 @@ class SimpleWindow : public Fl_Window {
     Fl_Value_Input* in_betamax;
     Fl_Value_Input* in_beta_num_intervals;
     Fl_Value_Input* in_num_seedpoints;
+    Fl_Value_Input* in_special_seedpoint;
     Fl_Check_Button* in_output_csv;
 
   private:
@@ -124,6 +125,9 @@ SimpleWindow::SimpleWindow(int w, int h, const char* title):Fl_Window(w,h,title)
   button_compute->type(FL_NORMAL_BUTTON);
   button_compute->color(FL_RED);
   button_compute->callback(callback_compute,this);
+  in_special_seedpoint = new Fl_Value_Input(4*padding,secondrow,boxwidth,boxheight,"special seed");
+  in_special_seedpoint->align(FL_ALIGN_TOP);
+  in_special_seedpoint->value(0);
 
   in_output_csv = new Fl_Check_Button(5*padding,secondrow,boxwidth,boxheight,"csv output");
 
@@ -144,7 +148,8 @@ void SimpleWindow::callback_compute(Fl_Widget* o, void* v) {
 void SimpleWindow::callback_compute_il() {
   std::cout << "start computation..." << std::endl;
 
-  std::vector<float> seedpoints = {};
+  std::vector<float> seedpoints;
+  seedpoints.push_back(in_special_seedpoint->value());
 
   compute_all(
     in_num_iterations->value(),
