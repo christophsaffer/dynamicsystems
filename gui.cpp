@@ -89,10 +89,12 @@ SimpleWindow::SimpleWindow(int w, int h, const char* title):Fl_Window(w,h,title)
   in_alpha_num_intervals = new Fl_Value_Input(2*padding,firstrow,boxwidth,boxheight,"width");
   in_alpha_num_intervals->align(FL_ALIGN_TOP);
   in_alpha_num_intervals->value(400); 
+  in_alpha_num_intervals->step(1);
 
   in_num_iterations = new Fl_Value_Input(3*padding,firstrow,boxwidth,boxheight,"iterations");
   in_num_iterations->align(FL_ALIGN_TOP);
   in_num_iterations->value(100);
+  in_num_iterations->step(1);
 
   in_threshold = new Fl_Value_Input(4*padding,firstrow,boxwidth,boxheight,"threshold");
   in_threshold->align(FL_ALIGN_TOP);
@@ -114,11 +116,13 @@ SimpleWindow::SimpleWindow(int w, int h, const char* title):Fl_Window(w,h,title)
   in_beta_num_intervals = new Fl_Value_Input(2*padding,secondrow,boxwidth,boxheight,"height");
   in_beta_num_intervals->align(FL_ALIGN_TOP);
   in_beta_num_intervals->value(400); 
+  in_beta_num_intervals->step(1);
 
 
   in_num_seedpoints = new Fl_Value_Input(3*padding,secondrow,boxwidth,boxheight,"# seedpoints");
   in_num_seedpoints->align(FL_ALIGN_TOP);
   in_num_seedpoints->value(8);
+  in_num_seedpoints->step(1);
 
   in_special_seedpoint = new Fl_Value_Input(4*padding,secondrow,boxwidth,boxheight,"special seed");
   in_special_seedpoint->align(FL_ALIGN_TOP);
