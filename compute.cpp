@@ -75,12 +75,12 @@ void compute_all(
   aligned_vector<float> y_start(num_seedpoints);
   for (int i = 1; i < num_seedpoints - seedpoints.size() + 1; ++i) {
     x_start[i - 1] = 0.5f * static_cast<float>(i) / (num_seedpoints - seedpoints.size() + 1);
-    y_start[i - 1] = 0;
+//    y_start[i - 1] = 0;
     std::cout << x_start[i - 1] << ", ";
   }
   for (int i = 0; i < seedpoints.size(); ++i) {
     x_start[num_seedpoints - seedpoints.size() + i] = seedpoints[i];
-    y_start[num_seedpoints - seedpoints.size() + i] = 0;
+//    y_start[num_seedpoints - seedpoints.size() + i] = 0;
     std::cout << x_start[num_seedpoints - seedpoints.size() + i] << ", ";
   }
   std::cout << '\n';
