@@ -1,10 +1,17 @@
 #include "picture.hpp"
 
+#include <iostream>
+#include <vector>
+
+#include <png.h>
+
+#include "colormaps.hpp"
+
 // all functions for picture transformation and output:
 
 // function: map result to color vector
-bool write_png(const char * filename, const float *result, float threshold, int width, int height) {
-  
+bool write_png(const char *filename, const float *result, float threshold,
+               int width, int height) {
   std::vector<unsigned char> colors_gray(width * height);
   std::vector<unsigned char> colors_rgb(3 * width * height);
 

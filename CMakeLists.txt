@@ -1,29 +1,36 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.9.6)
 project(dynamicsystems LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(PNG REQUIRED)
+
+add_library(dynamicsystems compute.cpp picture.cpp)
+target_link_libraries(dynamicsystems PRIVATE PNG::PNG Boost::boost)
+target_link_libraries(dynamicsystems PUBLIC Boost::boost)
+target_compile_features(dynamicsystems PUBLIC cxx_std_11)
 
 find_package(OpenMP)
-add_executable(dynamicsystems-cli cli.cpp compute.cpp picture.cpp)
-
-find_package(FLTK)
-find_package(OpenGL)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${-lfltk_images} ${-lfltk_png}")
-find_package(PNG REQUIRED)
-include_directories(${PNG_INCLUDE_DIR})
-
-add_executable(dynamicsystems-gui gui.cpp compute.cpp picture.cpp)
-target_link_libraries(dynamicsystems-gui ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${PNG_LIBRARY})
-
-if(OPENMP_FOUND)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+if(OPENMP_CXX_FOUND)
+  target_link_libraries(dynamicsystems PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-find_package(Boost REQUIRED COMPONENTS program_options)
-target_include_directories(dynamicsystems-cli PRIVATE ${Boost_INCLUDE_DIR})
-target_link_libraries(dynamicsystems-cli PRIVATE ${PNG_LIBRARY} ${Boost_LIBRARIES})
+add_executable(dynamicsystems-cli cli.cpp)
+target_link_libraries(dynamicsystems-cli PRIVATE dynamicsystems)
 
+set(FLTK_SKIP_OPENGL TRUE)
+set(FLTK_SKIP_FLUID TRUE)
+find_package(FLTK)
+if(FLTK_FOUND)
+add_executable(dynamicsystems-gui gui.cpp)
+target_link_libraries(dynamicsystems-gui PRIVATE dynamicsystems)
+target_include_directories(dynamicsystems-gui PRIVATE ${FLTK_INCLUDE_DIR})
+target_link_libraries(dynamicsystems-gui PRIVATE ${FLTK_LIBRARIES})
+endif()
+
+
+target_link_libraries(dynamicsystems-cli PRIVATE Boost::program_options
+                                                 Boost::disable_autolinking
+                                                 Boost::dynamic_linking)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   if (WIN32)
