@@ -68,7 +68,7 @@ bool write_png(const char *filename, const float *result, float threshold,
   png_infop info = png_create_info_struct(png);
   if (!info) return false;
 
-  if (std::setjmp(png_jmpbuf(png))) return false;
+  if (setjmp(png_jmpbuf(png))) return false;
 
   png_init_io(png, file);
 
