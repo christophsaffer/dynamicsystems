@@ -25,7 +25,10 @@ add_executable(dynamicsystems-gui gui.cpp)
 target_link_libraries(dynamicsystems-gui PRIVATE dynamicsystems)
 target_include_directories(dynamicsystems-gui PRIVATE ${FLTK_INCLUDE_DIR})
 target_link_libraries(dynamicsystems-gui PRIVATE ${FLTK_LIBRARIES})
-endif()
+if (WIN32)
+  set_property(TARGET dynamicsystems-gui PROPERTY WIN32_EXECUTABLE TRUE)
+endif(WIN32)
+endif(FLTK_FOUND)
 
 
 target_link_libraries(dynamicsystems-cli PRIVATE Boost::program_options
@@ -34,18 +37,10 @@ target_link_libraries(dynamicsystems-cli PRIVATE Boost::program_options
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   if (WIN32)
-    target_compile_options(dynamicsystems-cli PRIVATE "/Qopt-report:5"
-                                                  "/Qopt-report-phase:vec"
-                                                  "/QxHost")
-    target_compile_options(dynamicsystems-gui PRIVATE "/Qopt-report:5"
-                                                  "/Qopt-report-phase:vec"
-                                                  "/QxHost")
+    target_compile_options(dynamicsystems-cli PRIVATE "/QxHost")
+    target_compile_options(dynamicsystems-gui PRIVATE "/QxHost")
   else(WIN32)
-    target_compile_options(dynamicsystems-cli PRIVATE "-qopt-report=5"
-                                                  "-qopt-report-phase=vec"
-                                                  "-xhost")
-    target_compile_options(dynamicsystems-gui PRIVATE "-qopt-report=5"
-                                                  "-qopt-report-phase=vec"
-                                                  "-xhost")
+    target_compile_options(dynamicsystems-cli PRIVATE "-xhost")
+    target_compile_options(dynamicsystems-gui PRIVATE "-xhost")
   endif(WIN32)
 endif()
